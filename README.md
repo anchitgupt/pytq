@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/anchitgupta/pytq/actions"><img src="https://img.shields.io/badge/tests-37%20passing-brightgreen" alt="Tests"></a>
+  <a href="https://github.com/anchitgupt/pytq/actions"><img src="https://img.shields.io/badge/tests-37%20passing-brightgreen" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License"></a>
   <a href="https://arxiv.org/abs/2504.19874"><img src="https://img.shields.io/badge/arXiv-2504.19874-b31b1b" alt="Paper"></a>
   <img src="https://img.shields.io/badge/python-%3E%3D3.9-3776ab" alt="Python">
@@ -60,7 +60,7 @@ pip install pytq
 **From source:**
 
 ```bash
-git clone https://github.com/anchitgupta/pytq.git
+git clone https://github.com/anchitgupt/pytq.git
 cd pytq
 pip install -e .
 ```

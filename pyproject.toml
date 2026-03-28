@@ -22,8 +22,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/anchitgupta/pytq"
-Repository = "https://github.com/anchitgupta/pytq"
+Homepage = "https://github.com/anchitgupt/pytq"
+Repository = "https://github.com/anchitgupt/pytq"
 Paper = "https://arxiv.org/abs/2504.19874"
 
 [project.optional-dependencies]

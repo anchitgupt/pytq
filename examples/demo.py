@@ -143,7 +143,7 @@ def main():
     print("    - Zero training, zero calibration — works instantly on any vector")
     print()
     print("  Paper: https://arxiv.org/abs/2504.19874")
-    print("  GitHub: https://github.com/anchitgupta/pytq")
+    print("  GitHub: https://github.com/anchitgupt/pytq")
     print()
 
 
