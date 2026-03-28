@@ -4,4 +4,8 @@ __pycache__/
 dist/
 build/
 results/
+benchmark_results/
 .pytest_cache/
+.venv/
+*.png
+quality_results.json

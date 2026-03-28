@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the original TurboQuant paper."
+title: "pytq: TurboQuant for PyTorch"
+type: software
+references:
+  - type: article
+    title: "TurboQuant: Online Vector Quantization with Near-optimal Distortion Rate"
+    authors:
+      - family-names: Zandieh
+        given-names: Amir
+        affiliation: Google Research
+      - family-names: Daliri
+        given-names: Majid
+        affiliation: New York University
+      - family-names: Hadian
+        given-names: Majid
+        affiliation: Google DeepMind
+      - family-names: Mirrokni
+        given-names: Vahab
+        affiliation: Google Research
+    year: 2026
+    journal: "International Conference on Learning Representations (ICLR)"
+    url: "https://arxiv.org/abs/2504.19874"
