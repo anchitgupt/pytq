@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytq"
+version = "0.1.0"
+description = "TurboQuant: Online Vector Quantization with Near-optimal Distortion Rate"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+bench = [
+    "transformers",
+    "torchao",
+    "datasets",
+    "psutil",
+    "matplotlib",
+    "tqdm",
+]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
