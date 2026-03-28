@@ -11,23 +11,53 @@ from tqdm import tqdm
 from pytq.kv_cache import TurboQuantKVCache
 
 
+def _quantize_key_tensor(key: torch.Tensor, bits: int, head_dim: int) -> torch.Tensor:
+    """Quantize and immediately dequantize a key tensor to simulate TurboQuant compression.
+
+    This measures the quality impact of quantization without needing to integrate
+    with HuggingFace's internal cache mechanics.
+
+    Args:
+        key: (batch, n_heads, seq_len, head_dim)
+        bits: Bit-width for quantization.
+        head_dim: Dimension per attention head.
+
+    Returns:
+        Reconstructed key tensor with same shape.
+    """
+    from pytq.quantize_mse import TurboQuantMSE
+
+    batch, n_heads, seq_len, hd = key.shape
+    result = torch.zeros_like(key)
+    for h in range(n_heads):
+        q = TurboQuantMSE(dim=hd, bits=bits, seed=h)
+        k_head = key[:, h, :, :]  # (batch, seq_len, head_dim)
+        qt = q.quantize(k_head)
+        result[:, h, :, :] = q.dequantize(qt)
+    return result
+
+
 def compute_perplexity(
     model,
     tokenizer,
     dataset_text: str,
-    cache_factory=None,  # callable returning a fresh TurboQuantKVCache, or None for baseline
+    quantize_bits: int = 0,
+    head_dim: int = 64,
     max_length: int = 2048,
     stride: int = 512,
     device: str = "cpu",
 ) -> float:
     """Compute perplexity using a sliding window approach.
 
+    When quantize_bits > 0, installs forward hooks on attention layers to
+    quantize/dequantize key tensors, simulating TurboQuant KV cache compression.
+
     Args:
         model: A HuggingFace CausalLM model.
         tokenizer: Matching tokenizer.
         dataset_text: Raw text to evaluate on.
-        cache_factory: Optional callable returning a fresh TurboQuantKVCache per
-            window. When None, the model runs without a custom KV cache (baseline).
+        quantize_bits: If > 0, quantize keys at this bit-width. 0 = baseline.
+        head_dim: Dimension per attention head.
         max_length: Window size in tokens.
         stride: Step size between consecutive windows.
         device: Torch device string.
@@ -39,11 +69,9 @@ def compute_perplexity(
     input_ids = encodings.input_ids.to(device)
 
     seq_len = input_ids.size(1)
-    nlls = []
     prev_end = 0
     max_windows = 50
 
-    # Build list of (begin_loc, end_loc, target_begin) tuples
     windows = []
     for begin_loc in range(0, seq_len, stride):
         end_loc = min(begin_loc + max_length, seq_len)
@@ -52,29 +80,52 @@ def compute_perplexity(
         prev_end = end_loc
         if end_loc == seq_len:
             break
-
     windows = windows[:max_windows]
 
+    # Install hooks to quantize keys if needed
+    hooks = []
+    if quantize_bits > 0:
+        for module in model.modules():
+            # Find attention modules — they compute key projections
+            module_name = type(module).__name__.lower()
+            if "attention" in module_name and hasattr(module, "k_proj"):
+                orig_k_proj = module.k_proj
+
+                class QuantizeKeyWrapper(torch.nn.Module):
+                    def __init__(self, original, bits, hd):
+                        super().__init__()
+                        self.original = original
+                        self.bits = bits
+                        self.hd = hd
+
+                    def forward(self, x):
+                        k = self.original(x)
+                        # k shape: (batch, seq_len, n_heads * head_dim) or (batch, seq_len, n_kv_heads * head_dim)
+                        batch, seq_len, total_dim = k.shape
+                        n_heads = total_dim // self.hd
+                        k_reshaped = k.view(batch, seq_len, n_heads, self.hd).transpose(1, 2)
+                        k_quantized = _quantize_key_tensor(k_reshaped, self.bits, self.hd)
+                        return k_quantized.transpose(1, 2).reshape(batch, seq_len, total_dim)
+
+                wrapper = QuantizeKeyWrapper(orig_k_proj, quantize_bits, head_dim)
+                module.k_proj = wrapper
+                hooks.append((module, "k_proj", orig_k_proj))
+
     model.eval()
+    nlls = []
     with torch.no_grad():
         for begin_loc, end_loc, trg_len in tqdm(windows, desc="Perplexity windows"):
             input_chunk = input_ids[:, begin_loc:end_loc]
-
             target_ids = input_chunk.clone()
-            # Mask out the context tokens that are not part of the target
             target_ids[:, :-trg_len] = -100
 
-            kwargs = {}
-            if cache_factory is not None:
-                kwargs["past_key_values"] = cache_factory()
-
-            outputs = model(
-                input_chunk,
-                labels=target_ids,
-                **kwargs,
-            )
+            outputs = model(input_chunk, labels=target_ids)
             neg_log_likelihood = outputs.loss * trg_len
             nlls.append(neg_log_likelihood)
+
+    # Remove hooks
+    for module, attr_name, orig in hooks:
+        setattr(module, attr_name, orig)
 
     total_nll = torch.stack(nlls).sum()
     total_tokens = sum(trg_len for _, _, trg_len in windows)
@@ -125,6 +176,15 @@ def run_quality_benchmark(
 
     print(f"Detected head_dim={head_dim}")
 
+    # Detect model max position length
+    max_length = 2048
+    for attr in ("max_position_embeddings", "n_positions", "n_ctx"):
+        if hasattr(config, attr):
+            max_length = min(getattr(config, attr), 2048)
+            break
+    stride = min(512, max_length // 4)
+    print(f"Using max_length={max_length}, stride={stride}")
+
     results = {}
 
     # Baseline (no quantization)
@@ -133,7 +193,10 @@ def run_quality_benchmark(
         model=model,
         tokenizer=tokenizer,
         dataset_text=dataset_text,
-        cache_factory=None,
+        quantize_bits=0,
+        head_dim=head_dim,
+        max_length=max_length,
+        stride=stride,
         device=device,
     )
     results["baseline"] = {"perplexity": baseline_ppl}
@@ -142,14 +205,14 @@ def run_quality_benchmark(
     # Per bit-width runs
     for bits in bits_list:
         print(f"\n--- TurboQuant KV cache: {bits}-bit ---")
-        factory = lambda b=bits, hd=head_dim, d=device: TurboQuantKVCache(
-            bits=b, head_dim=hd, device=d
-        )
         quant_ppl = compute_perplexity(
             model=model,
             tokenizer=tokenizer,
             dataset_text=dataset_text,
-            cache_factory=factory,
+            quantize_bits=bits,
+            head_dim=head_dim,
+            max_length=max_length,
+            stride=stride,
             device=device,
         )
         delta = quant_ppl - baseline_ppl

@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "perplexity": 24.541914423125835
+  },
+  "2bit": {
+    "perplexity": 24.541914423125835,
+    "delta": 0.0,
+    "pct_delta": 0.0
+  },
+  "3bit": {
+    "perplexity": 24.541914423125835,
+    "delta": 0.0,
+    "pct_delta": 0.0
+  },
+  "4bit": {
+    "perplexity": 24.541914423125835,
+    "delta": 0.0,
+    "pct_delta": 0.0
+  }
+}
