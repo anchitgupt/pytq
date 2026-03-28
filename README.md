@@ -1,6 +1,15 @@
-# pytq
+<p align="center">
+  <img src="assets/logo.svg" alt="pytq — TurboQuant for PyTorch" width="400">
+</p>
 
-PyTorch implementation of online vector quantization for transformer KV caches, achieving near-optimal distortion rates at 2–4 bits per coordinate.
+<p align="center">
+  <a href="https://github.com/anchitgupta/pytq/actions"><img src="https://img.shields.io/badge/tests-37%20passing-brightgreen" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License"></a>
+  <a href="https://arxiv.org/abs/2504.19874"><img src="https://img.shields.io/badge/arXiv-2504.19874-b31b1b" alt="Paper"></a>
+  <img src="https://img.shields.io/badge/python-%3E%3D3.9-3776ab" alt="Python">
+</p>
+
+PyTorch implementation of online vector quantization for transformer KV caches, achieving near-optimal distortion rates at 2-4 bits per coordinate.
 
 ---
 
