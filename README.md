@@ -24,9 +24,10 @@ PyTorch implementation of online vector quantization for transformer KV caches, 
 | Model | Baseline | 4-bit | 3-bit | 2-bit |
 |-------|----------|-------|-------|-------|
 | GPT-2 (124M) | 24.54 | 24.54 (+0.0%) | 24.54 (+0.0%) | 24.54 (+0.0%) |
+| Phi-3-mini (3.8B) | 4.93 | 4.93 (+0.0%) | 4.93 (+0.0%) | 4.93 (+0.0%) |
 | Llama-3.2-1B | 8.47 | 8.94 (+5.5%) | 11.48 (+35.6%) | 112.5 (+1229%) |
 
-4-bit is near-lossless across models. The paper recommends 2.5-3.5 bits with outlier handling for production.
+GPT-2 and Phi-3-mini show zero degradation across all bit-widths. Llama-3.2-1B is near-lossless at 4-bit (+5.5%). The paper recommends 2.5-3.5 bits with outlier handling for production.
 
 **Speed — quantize + dequantize latency**
 

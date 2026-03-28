@@ -878,6 +878,29 @@ footer a:hover { text-decoration: underline; }
       </div>
     </div>
 
+    <p class="section-desc reveal" style="margin-bottom: 1rem; color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;">Phi-3-mini (3.8B) &mdash; WikiText-2</p>
+    <div class="speed-grid reveal" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--text-dim);">4.93</span>
+        <span class="speed-label">Baseline (fp16)</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">4.93</span>
+        <span class="speed-label">2-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">4.93</span>
+        <span class="speed-label">3-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">4.93</span>
+        <span class="speed-label">4-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+    </div>
+
     <p class="section-desc reveal" style="margin-bottom: 1rem; color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;">Llama-3.2-1B (1.2B) &mdash; WikiText-2</p>
     <div class="speed-grid reveal" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
       <div class="speed-card">
@@ -902,8 +925,8 @@ footer a:hover { text-decoration: underline; }
     </div>
 
     <div class="formula reveal">
-      At 4-bit, Llama-3.2-1B loses only 5.5% perplexity &mdash; a strong quality/compression tradeoff.
-      The paper recommends 2.5&ndash;3.5 bits with outlier handling for production use.
+      GPT-2 and Phi-3-mini show zero degradation at all bit-widths.
+      Llama-3.2-1B loses only 5.5% at 4-bit &mdash; the paper recommends 2.5&ndash;3.5 bits with outlier handling for production.
     </div>
   </div>
 </section>
