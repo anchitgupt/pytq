@@ -19,6 +19,10 @@ class TurboQuantKVCache:
         outlier_config=None,
         device="cpu",
     ):
+        if not (isinstance(bits, (int, float)) and bits > 0):
+            raise ValueError(f"bits must be a positive number, got {bits}")
+        if not isinstance(head_dim, int) or head_dim <= 0:
+            raise ValueError(f"head_dim must be a positive integer, got {head_dim}")
         self.bits = bits
         self.head_dim = head_dim
         self.outlier_config = outlier_config
@@ -53,7 +57,13 @@ class TurboQuantKVCache:
         Returns:
             (dequantized_keys, values) for this layer.
         """
+        if key.ndim != 4:
+            raise ValueError(f"key must be a 4D tensor (batch, n_heads, seq_len, head_dim), got {key.ndim}D")
+        if value.ndim != 4:
+            raise ValueError(f"value must be a 4D tensor (batch, n_heads, seq_len, head_dim), got {value.ndim}D")
         batch, n_heads, seq_len, head_dim = key.shape
+        if head_dim != self.head_dim:
+            raise ValueError(f"Expected key with last dimension {self.head_dim}, got {head_dim}")
 
         if layer_idx not in self._quantized_keys:
             self._quantized_keys[layer_idx] = []

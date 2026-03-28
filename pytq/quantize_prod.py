@@ -31,7 +31,10 @@ class TurboQuantProd:
     """
 
     def __init__(self, dim: int, bits: int, seed: int = 0, device: str = "cpu"):
-        assert bits >= 2, "TurboQuant_prod requires at least 2 bits"
+        if not isinstance(dim, int) or dim <= 0:
+            raise ValueError(f"dim must be a positive integer, got {dim}")
+        if not isinstance(bits, int) or bits < 2 or bits > 8:
+            raise ValueError(f"bits must be between 2 and 8 for TurboQuant_prod (1 bit for MSE + 1 for QJL minimum), got {bits}")
         self.dim = dim
         self.bits = bits
         self.seed = seed

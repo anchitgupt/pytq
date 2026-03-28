@@ -16,6 +16,10 @@ class TurboQuantMSE:
     """
 
     def __init__(self, dim: int, bits: int, seed: int = 0, device: str = "cpu"):
+        if not isinstance(dim, int) or dim <= 0:
+            raise ValueError(f"dim must be a positive integer, got {dim}")
+        if not isinstance(bits, int) or bits < 1 or bits > 8:
+            raise ValueError(f"bits must be between 1 and 8, got {bits}")
         self.dim = dim
         self.bits = bits
         self.seed = seed
@@ -26,7 +30,8 @@ class TurboQuantMSE:
 
     def quantize(self, x: torch.Tensor) -> QuantizedTensor:
         orig_shape = x.shape
-        assert orig_shape[-1] == self.dim
+        if orig_shape[-1] != self.dim:
+            raise ValueError(f"Expected input tensor with last dimension {self.dim}, got {orig_shape[-1]}")
         x_flat = x.reshape(-1, self.dim).to(self.device)
 
         # Step 1: Normalize

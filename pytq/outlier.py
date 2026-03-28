@@ -17,6 +17,17 @@ class OutlierConfig:
     outlier_bits: int = 3
     normal_bits: int = 2
 
+    def __post_init__(self):
+        if not (0 < self.outlier_fraction < 1):
+            raise ValueError(f"outlier_fraction must be between 0 and 1 (exclusive), got {self.outlier_fraction}")
+        if not isinstance(self.outlier_bits, int) or self.outlier_bits <= 0:
+            raise ValueError(f"outlier_bits must be a positive integer, got {self.outlier_bits}")
+        if not isinstance(self.normal_bits, int) or self.normal_bits <= 0:
+            raise ValueError(f"normal_bits must be a positive integer, got {self.normal_bits}")
+        if self.outlier_bits <= self.normal_bits:
+            import warnings
+            warnings.warn(f"outlier_bits ({self.outlier_bits}) is not greater than normal_bits ({self.normal_bits})")
+
     @property
     def effective_bits(self) -> float:
         return self.outlier_fraction * self.outlier_bits + (1 - self.outlier_fraction) * self.normal_bits
@@ -54,6 +65,8 @@ class OutlierQuantizer:
     """
 
     def __init__(self, dim: int, config: OutlierConfig, seed: int = 0, device: str = "cpu"):
+        if not isinstance(dim, int) or dim <= 0:
+            raise ValueError(f"dim must be a positive integer, got {dim}")
         self.dim = dim
         self.config = config
         self.device = device
