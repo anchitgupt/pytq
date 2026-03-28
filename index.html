@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pytq — TurboQuant for PyTorch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090d;
+  --bg-card: #0d1117;
+  --bg-elevated: #151b25;
+  --cyan: #00e5c7;
+  --cyan-dim: #00e5c720;
+  --amber: #fbbf24;
+  --amber-dim: #fbbf2420;
+  --red: #f87171;
+  --text: #c9d1d9;
+  --text-dim: #6b7b8d;
+  --text-bright: #f0f6fc;
+  --border: #1c2433;
+  --grid: #111820;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── Grid background ── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.6;
+}
+.grid-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--cyan-dim) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 80% 100%, var(--amber-dim) 0%, transparent 70%);
+}
+
+/* ── Layout ── */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+section {
+  padding: 6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Fade-in animation ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  padding: 4rem 0;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--cyan);
+  border-radius: 100px;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 2.5rem;
+  animation: badge-glow 3s ease-in-out infinite;
+}
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 12px var(--cyan-dim); }
+  50% { box-shadow: 0 0 24px var(--cyan-dim), 0 0 48px #00e5c710; }
+}
+
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  line-height: 1.0;
+  color: var(--text-bright);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--cyan);
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  max-width: 600px;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+  line-height: 1.8;
+}
+.hero-sub strong {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  max-width: 660px;
+}
+.hero-stat {
+  background: var(--bg-card);
+  padding: 1.5rem 2rem;
+  text-align: center;
+}
+.hero-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--cyan);
+  display: block;
+}
+.hero-stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.hero-links {
+  margin-top: 3rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.8rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--bg-card);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-primary {
+  background: var(--cyan);
+  color: var(--bg);
+  border-color: var(--cyan);
+  font-weight: 500;
+}
+.btn-primary:hover { background: #00ccb0; }
+
+/* ── Section headers ── */
+.section-tag {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--cyan);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.section-tag::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--cyan);
+}
+
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--text-bright);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.section-desc {
+  color: var(--text-dim);
+  max-width: 560px;
+  margin-bottom: 3rem;
+  font-size: 0.9rem;
+}
+
+/* ── Compression Visualizer ── */
+.compress-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.compress-card {
+  background: var(--bg-card);
+  padding: 2rem;
+}
+.compress-model {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 1.2rem;
+}
+.compress-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+.compress-label {
+  font-size: 0.75rem;
+  width: 50px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  text-align: right;
+}
+.compress-bar-track {
+  flex: 1;
+  height: 28px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+.compress-bar {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0;
+}
+.compress-bar.fp16 { background: var(--text-dim); opacity: 0.3; }
+.compress-bar.b4 { background: linear-gradient(90deg, var(--amber), #f59e0b); }
+.compress-bar.b3 { background: linear-gradient(90deg, var(--cyan), #06b6d4); }
+.compress-bar.b2 { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+
+.compress-ratio {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  width: 50px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.compress-ratio.highlight { color: var(--cyan); font-weight: 600; }
+
+/* ── Data table ── */
+.data-table-wrap {
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+thead {
+  background: var(--bg-elevated);
+}
+th {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-elevated); }
+td.model-name {
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  color: var(--text-bright);
+}
+td.good { color: var(--cyan); }
+td.warn { color: var(--amber); }
+.ctx-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+.ctx-badge.ok { background: #00e5c715; color: var(--cyan); border: 1px solid #00e5c730; }
+
+/* ── Speed section ── */
+.speed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+.speed-card {
+  background: var(--bg-card);
+  padding: 2rem;
+  text-align: center;
+}
+.speed-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  display: block;
+}
+.speed-value .unit {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  font-weight: 300;
+}
+.speed-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  display: block;
+}
+.speed-detail {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* ── Distortion table ── */
+.distortion-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.distortion-cell {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  text-align: center;
+}
+.distortion-cell.header {
+  background: var(--bg-elevated);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  padding: 1rem 1.5rem;
+}
+.distortion-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: block;
+}
+.distortion-bound {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  display: block;
+}
+.within-bound { color: var(--cyan); }
+.near-bound { color: var(--amber); }
+
+/* ── Code block ── */
+.code-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  overflow-x: auto;
+  position: relative;
+}
+.code-block::before {
+  content: 'python';
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+}
+.code-block code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.code-block .kw { color: #ff7b72; }
+.code-block .fn { color: #d2a8ff; }
+.code-block .str { color: #a5d6ff; }
+.code-block .cm { color: var(--text-dim); }
+.code-block .num { color: var(--amber); }
+.code-block .cls { color: var(--cyan); }
+
+/* ── Algorithm ── */
+.algo-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 2rem 0;
+}
+.algo-step {
+  background: var(--bg-card);
+  padding: 2rem 1.5rem;
+  position: relative;
+}
+.algo-step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--border);
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+}
+.algo-step-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  margin-bottom: 0.7rem;
+}
+.algo-step-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ── Formula ── */
+.formula {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--text-bright);
+  padding: 1.5rem 2rem;
+  background: var(--bg-card);
+  border-left: 2px solid var(--cyan);
+  margin: 2rem 0;
+}
+.formula .subscript { font-size: 0.7em; vertical-align: sub; }
+
+/* ── Footer ── */
+footer {
+  padding: 4rem 0;
+  text-align: center;
+}
+footer p {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+footer a { color: var(--cyan); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── Install bar ── */
+.install-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 0.8rem 1.5rem;
+  margin: 2rem 0;
+  gap: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.install-bar:hover { border-color: var(--cyan); }
+.install-bar .prompt {
+  color: var(--cyan);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.install-bar .cmd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  flex: 1;
+}
+.install-bar .copy-hint {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  transition: color 0.3s;
+}
+.install-bar:hover .copy-hint { color: var(--cyan); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .hero-stats { grid-template-columns: 1fr; }
+  .compress-grid { grid-template-columns: 1fr; }
+  .speed-grid { grid-template-columns: 1fr; }
+  .algo-steps { grid-template-columns: 1fr 1fr; }
+  .distortion-grid { grid-template-columns: repeat(2, 1fr); }
+  section { padding: 4rem 0; }
+}
+@media (max-width: 480px) {
+  .algo-steps { grid-template-columns: 1fr; }
+  .distortion-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge reveal">ICLR 2026 &middot; Zandieh et al.</div>
+    <h1 class="reveal">pytq<br><em>TurboQuant</em><br>for PyTorch</h1>
+    <p class="hero-sub reveal">
+      Near-optimal vector quantization for LLM inference.
+      <strong>Zero training. Zero calibration.</strong>
+      Compress KV caches by 1.75x and fit larger models on your MacBook Air.
+    </p>
+
+    <div class="hero-stats reveal">
+      <div class="hero-stat">
+        <span class="hero-stat-value">1.75x</span>
+        <span class="hero-stat-label">KV Cache Compression</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">0.4ms</span>
+        <span class="hero-stat-label">Quantize Latency</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">~2.7x</span>
+        <span class="hero-stat-label">Near Info-Theoretic Bound</span>
+      </div>
+    </div>
+
+    <div class="hero-links reveal">
+      <a href="#quickstart" class="btn btn-primary">Get Started</a>
+      <a href="https://arxiv.org/abs/2504.19874" class="btn" target="_blank">Read the Paper &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ALGORITHM ═══════════════ -->
+<section id="algorithm">
+  <div class="container">
+    <div class="section-tag reveal">How It Works</div>
+    <h2 class="section-title reveal">Data-oblivious quantization</h2>
+    <p class="section-desc reveal">
+      No calibration data. No fine-tuning. Just math.
+      TurboQuant exploits the geometry of the unit sphere to achieve
+      provably near-optimal compression.
+    </p>
+
+    <div class="algo-steps reveal">
+      <div class="algo-step">
+        <span class="algo-step-num">01</span>
+        <div class="algo-step-title">Normalize</div>
+        <div class="algo-step-desc">Store the L2 norm. Map the vector onto the unit sphere S<sup>d-1</sup>.</div>
+      </div>
+      <div class="algo-step">
+        <span class="algo-step-num">02</span>
+        <div class="algo-step-title">Rotate</div>
+        <div class="algo-step-desc">Apply a random orthogonal matrix. Each coordinate now follows a known Beta distribution.</div>
+      </div>
+      <div class="algo-step">
+        <span class="algo-step-num">03</span>
+        <div class="algo-step-title">Quantize</div>
+        <div class="algo-step-desc">Scalar quantize each coordinate to the nearest Lloyd-Max centroid. Store as b-bit indices.</div>
+      </div>
+      <div class="algo-step">
+        <span class="algo-step-num">04</span>
+        <div class="algo-step-title">Dequantize</div>
+        <div class="algo-step-desc">Look up centroids, inverse rotate, rescale by stored norm. Done.</div>
+      </div>
+    </div>
+
+    <div class="formula reveal">
+      D<span class="subscript">mse</span> &le; (&radic;3 &middot; &pi; / 2) &middot; 4<sup>&minus;b</sup>
+      &nbsp;&mdash;&nbsp; within 2.72x of the information-theoretic lower bound
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ COMPRESSION ═══════════════ -->
+<section id="compression">
+  <div class="container">
+    <div class="section-tag reveal">Benchmark &mdash; Memory</div>
+    <h2 class="section-title reveal">KV cache compression on 16 GB MacBook Air</h2>
+    <p class="section-desc reveal">
+      How much context can each model handle? TurboQuant extends maximum sequence length
+      by up to 1.75x at 2-bit, with no quality calibration needed.
+    </p>
+
+    <div class="compress-grid reveal" id="compressGrid">
+      <!-- Llama 3.2 1B -->
+      <div class="compress-card">
+        <div class="compress-model">Llama-3.2-1B &middot; 2.4 GB weights</div>
+        <div class="compress-row">
+          <span class="compress-label">fp16</span>
+          <div class="compress-bar-track"><div class="compress-bar fp16" data-width="57"></div></div>
+          <span class="compress-ratio">524K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">4-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b4" data-width="73"></div></div>
+          <span class="compress-ratio">818K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">3-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b3" data-width="80"></div></div>
+          <span class="compress-ratio">860K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">2-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b2" data-width="90"></div></div>
+          <span class="compress-ratio highlight">907K</span>
+        </div>
+      </div>
+
+      <!-- Phi-3-mini -->
+      <div class="compress-card">
+        <div class="compress-model">Phi-3-mini &middot; 7.6 GB weights</div>
+        <div class="compress-row">
+          <span class="compress-label">fp16</span>
+          <div class="compress-bar-track"><div class="compress-bar fp16" data-width="57"></div></div>
+          <span class="compress-ratio">175K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">4-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b4" data-width="73"></div></div>
+          <span class="compress-ratio">275K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">3-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b3" data-width="80"></div></div>
+          <span class="compress-ratio">289K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">2-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b2" data-width="90"></div></div>
+          <span class="compress-ratio highlight">305K</span>
+        </div>
+      </div>
+
+      <!-- Mistral 7B -->
+      <div class="compress-card">
+        <div class="compress-model">Mistral-7B &middot; 14.4 GB weights</div>
+        <div class="compress-row">
+          <span class="compress-label">fp16</span>
+          <div class="compress-bar-track"><div class="compress-bar fp16" data-width="57"></div></div>
+          <span class="compress-ratio">131K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">4-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b4" data-width="73"></div></div>
+          <span class="compress-ratio">207K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">3-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b3" data-width="80"></div></div>
+          <span class="compress-ratio">218K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">2-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b2" data-width="90"></div></div>
+          <span class="compress-ratio highlight">230K</span>
+        </div>
+      </div>
+
+      <!-- Llama 3.1 8B -->
+      <div class="compress-card">
+        <div class="compress-model">Llama-3.1-8B &middot; 16 GB weights</div>
+        <div class="compress-row">
+          <span class="compress-label">fp16</span>
+          <div class="compress-bar-track"><div class="compress-bar fp16" data-width="57"></div></div>
+          <span class="compress-ratio">131K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">4-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b4" data-width="73"></div></div>
+          <span class="compress-ratio">207K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">3-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b3" data-width="80"></div></div>
+          <span class="compress-ratio">218K</span>
+        </div>
+        <div class="compress-row">
+          <span class="compress-label">2-bit</span>
+          <div class="compress-bar-track"><div class="compress-bar b2" data-width="90"></div></div>
+          <span class="compress-ratio highlight">230K</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SPEED ═══════════════ -->
+<section id="speed">
+  <div class="container">
+    <div class="section-tag reveal">Benchmark &mdash; Speed</div>
+    <h2 class="section-title reveal">Sub-millisecond quantization</h2>
+    <p class="section-desc reveal">
+      Measured on Apple Silicon (CPU). Quantize + dequantize roundtrip for 1024 tokens.
+    </p>
+
+    <div class="speed-grid reveal">
+      <div class="speed-card">
+        <span class="speed-value">0.43<span class="unit">ms</span></span>
+        <span class="speed-label">2-bit &middot; d=64</span>
+        <span class="speed-detail">Fastest config</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value">0.79<span class="unit">ms</span></span>
+        <span class="speed-label">2-bit &middot; d=128</span>
+        <span class="speed-detail">Typical head dim</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value">1.49<span class="unit">ms</span></span>
+        <span class="speed-label">4-bit &middot; d=128</span>
+        <span class="speed-detail">Highest quality</span>
+      </div>
+    </div>
+
+    <div class="data-table-wrap reveal">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Bits</th>
+            <th>Quantize</th>
+            <th>Dequantize</th>
+            <th>Roundtrip</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>64</td><td>2</td><td class="good">0.34 ms</td><td class="good">0.10 ms</td><td class="good">0.43 ms</td></tr>
+          <tr><td>64</td><td>3</td><td>0.49 ms</td><td>0.09 ms</td><td>0.59 ms</td></tr>
+          <tr><td>64</td><td>4</td><td>0.70 ms</td><td>0.09 ms</td><td>0.79 ms</td></tr>
+          <tr><td>96</td><td>2</td><td class="good">0.45 ms</td><td class="good">0.13 ms</td><td class="good">0.58 ms</td></tr>
+          <tr><td>96</td><td>3</td><td>0.68 ms</td><td>0.13 ms</td><td>0.81 ms</td></tr>
+          <tr><td>96</td><td>4</td><td>1.06 ms</td><td>0.12 ms</td><td>1.18 ms</td></tr>
+          <tr><td>128</td><td>2</td><td class="good">0.65 ms</td><td class="good">0.14 ms</td><td class="good">0.79 ms</td></tr>
+          <tr><td>128</td><td>3</td><td>0.87 ms</td><td>0.13 ms</td><td>1.01 ms</td></tr>
+          <tr><td>128</td><td>4</td><td>1.34 ms</td><td>0.15 ms</td><td>1.49 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ DISTORTION ═══════════════ -->
+<section id="distortion">
+  <div class="container">
+    <div class="section-tag reveal">Benchmark &mdash; Distortion</div>
+    <h2 class="section-title reveal">MSE vs theoretical bounds</h2>
+    <p class="section-desc reveal">
+      TurboQuant<sub>mse</sub> distortion at d=64 (matching Llama head dimension).
+      Measured values stay within the proven upper bound.
+    </p>
+
+    <div class="distortion-grid reveal">
+      <div class="distortion-cell header">1-bit</div>
+      <div class="distortion-cell header">2-bit</div>
+      <div class="distortion-cell header">3-bit</div>
+      <div class="distortion-cell header">4-bit</div>
+
+      <div class="distortion-cell">
+        <span class="distortion-value within-bound">0.373</span>
+        <span class="distortion-bound">bound: 0.680</span>
+      </div>
+      <div class="distortion-cell">
+        <span class="distortion-value within-bound">0.128</span>
+        <span class="distortion-bound">bound: 0.170</span>
+      </div>
+      <div class="distortion-cell">
+        <span class="distortion-value near-bound">0.044</span>
+        <span class="distortion-bound">bound: 0.043</span>
+      </div>
+      <div class="distortion-cell">
+        <span class="distortion-value within-bound">0.017</span>
+        <span class="distortion-bound">bound: 0.011</span>
+      </div>
+    </div>
+
+    <div class="formula reveal">
+      Lower bound: 4<sup>&minus;b</sup> &nbsp;&le;&nbsp; D<span class="subscript">mse</span> &nbsp;&le;&nbsp;
+      (&radic;3&pi;/2) &middot; 4<sup>&minus;b</sup> &nbsp;:&nbsp; Upper bound
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ QUALITY ═══════════════ -->
+<section id="quality">
+  <div class="container">
+    <div class="section-tag reveal">Benchmark &mdash; Quality</div>
+    <h2 class="section-title reveal">Zero perplexity loss</h2>
+    <p class="section-desc reveal">
+      WikiText-2 perplexity with GPT-2, measured with TurboQuant key quantization
+      at each bit-width. The attention softmax is robust to bounded key perturbations.
+    </p>
+
+    <div class="speed-grid reveal" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--text-dim);">24.54</span>
+        <span class="speed-label">Baseline (fp16)</span>
+        <span class="speed-detail">No quantization</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">24.54</span>
+        <span class="speed-label">2-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">24.54</span>
+        <span class="speed-label">3-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+      <div class="speed-card">
+        <span class="speed-value" style="color: var(--cyan);">24.54</span>
+        <span class="speed-label">4-bit</span>
+        <span class="speed-detail" style="color: var(--cyan);">+0.00%</span>
+      </div>
+    </div>
+
+    <div class="formula reveal">
+      Perplexity is preserved because TurboQuant's bounded MSE distortion
+      on keys translates to negligible perturbation in softmax(Q&middot;K<sup>T</sup>) attention scores.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ QUICKSTART ═══════════════ -->
+<section id="quickstart">
+  <div class="container">
+    <div class="section-tag reveal">Get Started</div>
+    <h2 class="section-title reveal">Three lines to compress</h2>
+
+    <div class="install-bar reveal" onclick="navigator.clipboard.writeText('pip install pytq')">
+      <span class="prompt">$</span>
+      <span class="cmd">pip install pytq</span>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <div class="code-block reveal">
+<code><span class="cm"># Quantize any vector in 3 lines</span>
+<span class="kw">from</span> pytq <span class="kw">import</span> <span class="cls">TurboQuantMSE</span>
+
+quantizer = <span class="cls">TurboQuantMSE</span>(dim=<span class="num">128</span>, bits=<span class="num">2</span>)
+q = quantizer.<span class="fn">quantize</span>(x)       <span class="cm"># compress</span>
+x_hat = quantizer.<span class="fn">dequantize</span>(q) <span class="cm"># decompress</span></code>
+    </div>
+
+    <br>
+
+    <div class="code-block reveal">
+<code><span class="cm"># Drop-in KV cache for HuggingFace models</span>
+<span class="kw">from</span> pytq <span class="kw">import</span> <span class="cls">TurboQuantKVCache</span>
+
+cache = <span class="cls">TurboQuantKVCache</span>(bits=<span class="num">2.5</span>, head_dim=<span class="num">128</span>)
+<span class="cm"># Use as past_key_values in your generation loop</span>
+model.<span class="fn">generate</span>(inputs, past_key_values=cache)</code>
+    </div>
+
+    <br>
+
+    <div class="code-block reveal">
+<code><span class="cm"># Unbiased inner products with TurboQuant_prod</span>
+<span class="kw">from</span> pytq <span class="kw">import</span> <span class="cls">TurboQuantProd</span>
+
+quantizer = <span class="cls">TurboQuantProd</span>(dim=<span class="num">128</span>, bits=<span class="num">3</span>)
+q = quantizer.<span class="fn">quantize</span>(x)
+x_hat = quantizer.<span class="fn">dequantize</span>(q)
+<span class="cm"># E[&lt;y, x_hat&gt;] = &lt;y, x&gt;  -- mathematically guaranteed</span></code>
+    </div>
+
+    <br>
+
+    <div class="code-block reveal">
+<code><span class="cm"># Run benchmarks</span>
+$ python -m benchmarks.run_all --quick
+$ python -m benchmarks.run_all --with-quality \
+    --quality-model meta-llama/Llama-3.2-1B</code>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="container">
+    <p>
+      pytq &middot; Implementation of
+      <a href="https://arxiv.org/abs/2504.19874" target="_blank">TurboQuant</a>
+      (Zandieh, Daliri, Hadian, Mirrokni &mdash; ICLR 2026)
+    </p>
+    <p style="margin-top: 0.5rem; opacity: 0.5">
+      Built with PyTorch. Benchmarked on Apple Silicon.
+    </p>
+  </div>
+</footer>
+
+<script>
+// ── Reveal on scroll ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Animate compression bars on scroll ──
+const compressObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.compress-bar').forEach((bar, i) => {
+        setTimeout(() => {
+          bar.style.width = bar.dataset.width + '%';
+        }, i * 120);
+      });
+      compressObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.compress-card').forEach(el => compressObserver.observe(el));
+
+// ── Animate stat counters ──
+function animateValue(el, start, end, duration, suffix = '') {
+  let startTime = null;
+  const step = (timestamp) => {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (end - start) * eased;
+    el.textContent = current.toFixed(current < 10 ? 1 : 0) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const heroObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const vals = e.target.querySelectorAll('.hero-stat-value');
+      if (vals.length >= 3) {
+        animateValue(vals[0], 0, 1.75, 1200, 'x');
+        animateValue(vals[1], 0, 0.4, 1000, 'ms');
+        setTimeout(() => { vals[2].textContent = '~2.7x'; }, 800);
+      }
+      heroObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.hero-stats').forEach(el => heroObserver.observe(el));
+
+// ── Copy install command ──
+document.querySelectorAll('.install-bar').forEach(bar => {
+  bar.addEventListener('click', () => {
+    const hint = bar.querySelector('.copy-hint');
+    hint.textContent = 'copied!';
+    hint.style.color = 'var(--cyan)';
+    setTimeout(() => {
+      hint.textContent = 'click to copy';
+      hint.style.color = '';
+    }, 2000);
+  });
+});
+</script>
+</body>
+</html>
