@@ -19,14 +19,14 @@ PyTorch implementation of online vector quantization for transformer KV caches, 
 
 ## Key Results
 
-**Quality — GPT-2 perplexity (WikiText-2)**
+**Quality — WikiText-2 perplexity**
 
-| Bits | Perplexity | Degradation |
-|------|-----------|-------------|
-| fp16 (baseline) | 24.54 | — |
-| 4-bit | 24.54 | 0% |
-| 3-bit | 24.54 | 0% |
-| 2-bit | 24.54 | 0% |
+| Model | Baseline | 4-bit | 3-bit | 2-bit |
+|-------|----------|-------|-------|-------|
+| GPT-2 (124M) | 24.54 | 24.54 (+0.0%) | 24.54 (+0.0%) | 24.54 (+0.0%) |
+| Llama-3.2-1B | 8.47 | 8.94 (+5.5%) | 11.48 (+35.6%) | 112.5 (+1229%) |
+
+4-bit is near-lossless across models. The paper recommends 2.5-3.5 bits with outlier handling for production.
 
 **Speed — quantize + dequantize latency**
 
