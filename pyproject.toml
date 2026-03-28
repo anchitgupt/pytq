@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pytq"
 version = "0.1.0"
 description = "TurboQuant: Online Vector Quantization with Near-optimal Distortion Rate"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "torch>=2.1",
     "numpy",
@@ -25,6 +25,9 @@ bench = [
 dev = [
     "pytest",
 ]
+
+[tool.setuptools.packages.find]
+include = ["pytq*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
