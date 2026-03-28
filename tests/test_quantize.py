@@ -6,6 +6,7 @@ from pytq.quantize_mse import TurboQuantMSE
 from pytq.utils import mse_distortion, mse_upper_bound
 from pytq.quantize_prod import TurboQuantProd
 from pytq.utils import ip_distortion
+from pytq.outlier import OutlierConfig, OutlierQuantizer
 
 
 class TestTurboQuantMSE:
@@ -125,3 +126,35 @@ class TestTurboQuantProd:
         qt = q.quantize(x)
         x_hat = q.dequantize(qt)
         assert x_hat.shape == (4, 8, 64)
+
+
+class TestOutlierQuantizer:
+    def test_effective_bits(self):
+        cfg = OutlierConfig(outlier_fraction=0.25, outlier_bits=3, normal_bits=2)
+        assert cfg.effective_bits == 2.25
+
+    def test_quantize_shape(self):
+        cfg = OutlierConfig(outlier_fraction=0.25, outlier_bits=3, normal_bits=2)
+        oq = OutlierQuantizer(dim=128, config=cfg, seed=42)
+        x = torch.randn(10, 128)
+        result = oq.quantize(x)
+        assert result.dim == 128
+
+    def test_dequantize_roundtrip(self):
+        cfg = OutlierConfig(outlier_fraction=0.25, outlier_bits=3, normal_bits=2)
+        oq = OutlierQuantizer(dim=128, config=cfg, seed=42)
+        x = torch.randn(100, 128)
+        qt = oq.quantize(x)
+        x_hat = oq.dequantize(qt)
+        assert x_hat.shape == x.shape
+        mse = ((x - x_hat) ** 2).sum(dim=-1).mean()
+        assert mse < ((x ** 2).sum(dim=-1).mean() * 0.5)
+
+    def test_different_head_dims(self):
+        for dim in [64, 96, 128]:
+            cfg = OutlierConfig(outlier_fraction=0.25, outlier_bits=3, normal_bits=2)
+            oq = OutlierQuantizer(dim=dim, config=cfg, seed=42)
+            x = torch.randn(10, dim)
+            qt = oq.quantize(x)
+            x_hat = oq.dequantize(qt)
+            assert x_hat.shape == x.shape
